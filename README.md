@@ -1,2 +1,2 @@
 # subheaven-mb
-A simples message broker using RabbitMQ
+A simple message broker using RabbitMQ
