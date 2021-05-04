@@ -1,23 +1,26 @@
 {
-  "name": "subheaven-mb",
-  "version": "0.1.0",
-  "description": "A simples message broker using rabbitmq",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/SubHeaven/subheaven-mb.git"
-  },
-  "author": "SubHeaven",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/SubHeaven/subheaven-mb/issues"
-  },
-  "homepage": "https://github.com/SubHeaven/subheaven-mb#readme",
-  "dependencies": {
-    "amqplib": "^0.7.1",
-    "json5": "^2.2.0"
-  }
+    "name": "subheaven-mb",
+    "version": "0.1.0",
+    "description": "A simples message broker using rabbitmq",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/SubHeaven/subheaven-mb.git"
+    },
+    "author": "SubHeaven",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/SubHeaven/subheaven-mb/issues"
+    },
+    "homepage": "https://github.com/SubHeaven/subheaven-mb#readme",
+    "dependencies": {
+        "amqplib": "^0.7.1",
+        "json5": "^2.2.0"
+    },
+    "bin": {
+        "subheaven-mb": "/list_queues.js"
+    }
 }

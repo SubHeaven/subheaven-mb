@@ -78,7 +78,7 @@ exports.listenToQueue = async(queue, callback) => {
     await Promise.all([promise]);
 };
 
-exports.checkQueue = async(queue, callback) => {
+exports.listQueues = async(queue, callback) => {
     const promise = new Promise((resolve, reject) => {
         amqp.connect('amqp://localhost', (err1, connection) => {
             if (err1) reject(err1);
