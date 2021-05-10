@@ -1,4 +1,4 @@
-const queue = require('./subheaven-mq');
+const queue = require('./index');
 
 queue.subscript('logs', async msg => {
     console.log("");

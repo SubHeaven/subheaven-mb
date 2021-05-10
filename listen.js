@@ -1,4 +1,4 @@
-const queue = require('./subheaven-mq');
+const queue = require('./index');
 
 let showHelp = async() => {
     console.log("Ouve um canal no RabbitMQ consome e mostra as mensagens na fila. Depois de consumido a mensagem é removida da fila.");
@@ -20,7 +20,7 @@ if (process.argv.length > 2) {
             console.log("received:");
             console.log(typeof msg)
             console.log(msg);
-            return true;
+            return false;
         });
     }
 } else {

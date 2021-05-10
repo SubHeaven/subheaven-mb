@@ -1,5 +1,5 @@
 const json5 = require('json5');
-const queue = require('./subheaven-mq');
+const queue = require('./index');
 
 let showHelp = async() => {
     console.log("Parâmetros:");
@@ -7,9 +7,9 @@ let showHelp = async() => {
     console.log("    message = Mensagem a ser enviada a fila.");
     console.log("");
     console.log("Exemplo:");
-    console.log(`    node sender.js "item_vendido" codigo=125 quant=2 uf=GO`);
+    console.log(`    node send.js "item_vendido" codigo=125 quant=2 uf=GO`);
     console.log("Se a mensagem for iniciada com a tag -json então o resto da mensagem será enviada como um objeto json. Nesse caso os campos textos devem ser marcados com aspas simples (')");
-    console.log(`    node sender.js "item_vendido" -json { codigo:125, quant: 2, UF='GO' }`);
+    console.log(`    node send.js "item_vendido" -json { codigo: 125, quant: 2, uf: 'GO' }`);
 }
 
 if (process.argv.length > 2) {
@@ -20,6 +20,9 @@ if (process.argv.length > 2) {
         if (params[0] == '-json') {
             params.splice(0, 1);
             try {
+                console.log("");
+                console.log(params.join(' '));
+                console.log("");
                 let data = json5.parse(params.join(' '));
                 queue.sendToQueue(queue_name, data);
             } catch (e) {

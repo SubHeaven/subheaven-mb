@@ -34,10 +34,10 @@ exports.sendToQueue = async(queue, msg) => {
             connection.createChannel(async(err2, channel) => {
                 if (err2) reject(err2);
 
-                channel.assertQueue(queue, { durable: false });
+                channel.assertQueue(queue, { durable: true });
 
                 let pack = await this.packMessage(msg);
-                channel.sendToQueue(queue, Buffer.from(pack));
+                channel.sendToQueue(queue, Buffer.from(pack), { persistent: true });
                 console.log(`Sent: ${pack}`);
                 resolve();
             });
@@ -59,14 +59,19 @@ exports.listenToQueue = async(queue, callback) => {
             connection.createChannel((err2, channel) => {
                 if (err2) reject(err2);
 
-                channel.assertQueue(queue, { durable: false });
+                channel.assertQueue(queue, { durable: true });
 
                 console.log(`Waiting for messages from ${queue}. Press Ctrl + C to exit.`);
 
                 channel.consume(queue, async msg => {
                     now = new Date();
                     msg = await this.unpackMessage(msg.content.toString());
-                    if (callback) callback(msg);
+                    if (callback) {
+                        let response = await callback(unpacked);
+                        if (response) {
+                            channel.ack(msg);
+                        }
+                    }
                 }, {
                     noAck: false
                 });
@@ -78,7 +83,7 @@ exports.listenToQueue = async(queue, callback) => {
     await Promise.all([promise]);
 };
 
-exports.listQueues = async(queue, callback) => {
+exports.listenToQueueSilent = async(queue, limit, callback) => {
     const promise = new Promise((resolve, reject) => {
         amqp.connect('amqp://localhost', (err1, connection) => {
             if (err1) reject(err1);
@@ -86,22 +91,56 @@ exports.listQueues = async(queue, callback) => {
             connection.createChannel((err2, channel) => {
                 if (err2) reject(err2);
 
-                channel.assertQueue(queue, { durable: false });
-                channel.prefetch(1);
+                channel.assertQueue(queue, { durable: true });
 
-                channel.checkQueue(queue, async(err, response) => {
-                    if (err) console.error(err);
-                    if (callback) callback(err, response);
-                    channel.close();
-                    connection.close();
-                    resolve();
+                let counter = 0;
+
+                channel.consume(queue, async msg => {
+                    counter++;
+                    if (counter === limit) {
+                        channel.cancel(msg.fields.consumerTag);
+                        setTimeout(function() {
+                            connection.close();
+                        }, 500);
+                    }
+                    now = new Date();
+                    msg = await this.unpackMessage(msg.content.toString());
+                    if (callback) callback(null, msg);
+                }, {
+                    noAck: false
                 });
+                resolve();
             });
         });
     });
 
     await Promise.all([promise]);
 };
+
+// exports.listQueues = async(queue, callback) => {
+//     const promise = new Promise((resolve, reject) => {
+//         amqp.connect('amqp://localhost', (err1, connection) => {
+//             if (err1) reject(err1);
+
+//             connection.createChannel((err2, channel) => {
+//                 if (err2) reject(err2);
+
+//                 channel.assertQueue(queue, { durable: true });
+//                 channel.prefetch(1);
+
+//                 channel.checkQueue(queue, async(err, response) => {
+//                     if (err) console.error(err);
+//                     if (callback) callback(err, response);
+//                     channel.close();
+//                     connection.close();
+//                     resolve();
+//                 });
+//             });
+//         });
+//     });
+
+//     await Promise.all([promise]);
+// };
 
 exports.consumeOneFromQueue = async(queue_name, callback) => {
     const tools = this;
@@ -116,16 +155,18 @@ exports.consumeOneFromQueue = async(queue_name, callback) => {
                     throw error1;
                 }
 
-                channel.assertQueue(queue_name, {
-                    durable: false
-                });
+                channel.assertQueue(queue_name, { durable: true });
                 channel.prefetch(1);
 
                 channel.consume(queue_name, async(msg) => {
                     channel.cancel(msg.fields.consumerTag);
                     let unpacked = await tools.unpackMessage(msg.content.toString());
-                    channel.ack(msg);
-                    if (callback) callback(unpacked);
+                    if (callback) {
+                        let response = await callback(unpacked);
+                        if (response) {
+                            channel.ack(msg);
+                        }
+                    }
                     resolve(unpacked);
                 }, {
                     noAck: false
@@ -149,7 +190,7 @@ exports.publish = async(exchange, msg) => {
                 if (err2) reject(err2);
 
                 let pack = await this.packMessage(msg);
-                channel.assertExchange(exchange, 'fanout', { durable: false });
+                channel.assertExchange(exchange, 'fanout', { durable: true });
                 channel.publish(exchange, '', Buffer.from(pack));
                 console.log(`Send: ${pack}`);
                 resolve();
@@ -172,7 +213,7 @@ exports.subscript = async(exchange, callback) => {
             connection.createChannel((err2, channel) => {
                 if (err2) reject(err2);
 
-                channel.assertExchange(exchange, 'fanout', { durable: false });
+                channel.assertExchange(exchange, 'fanout', { durable: true });
 
 
                 channel.assertQueue('', { exclusive: true }, (err3, q) => {
