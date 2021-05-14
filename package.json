@@ -1,6 +1,6 @@
 {
     "name": "subheaven-mb",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "A simples message broker using rabbitmq",
     "main": "index.js",
     "scripts": {

@@ -1,4 +1,5 @@
 const amqp = require('amqplib/callback_api');
+const log = require('debug')('subheaven:mb');
 
 exports.packMessage = async msg => {
     let t = typeof msg;
@@ -38,7 +39,7 @@ exports.sendToQueue = async(queue, msg) => {
 
                 let pack = await this.packMessage(msg);
                 channel.sendToQueue(queue, Buffer.from(pack), { persistent: true });
-                console.log(`Sent: ${pack}`);
+                log(`Sent to ${queue}: ${pack}`);
                 resolve();
             });
 
@@ -61,7 +62,7 @@ exports.listenToQueue = async(queue, callback) => {
 
                 channel.assertQueue(queue, { durable: true });
 
-                console.log(`Waiting for messages from ${queue}. Press Ctrl + C to exit.`);
+                log(`Waiting for messages from ${queue}. Press Ctrl + C to exit.`);
 
                 channel.consume(queue, async msg => {
                     now = new Date();
@@ -192,7 +193,7 @@ exports.publish = async(exchange, msg) => {
                 let pack = await this.packMessage(msg);
                 channel.assertExchange(exchange, 'fanout', { durable: true });
                 channel.publish(exchange, '', Buffer.from(pack));
-                console.log(`Send: ${pack}`);
+                log(`Published to ${exchange}: ${pack}`);
                 resolve();
             });
 
@@ -219,13 +220,12 @@ exports.subscript = async(exchange, callback) => {
                 channel.assertQueue('', { exclusive: true }, (err3, q) => {
                     if (err3) reject(err3);
 
-                    console.log(`Waiting for messages from ${q.queue}. Press Ctrl + C to exit.`);
+                    log(`Waiting for messages from ${q.queue}. Press Ctrl + C to exit.`);
                     channel.bindQueue(q.queue, exchange, '');
 
                     channel.consume(q.queue, async msg => {
                         if (msg.content) {
                             let now = new Date();
-                            console.log(`${now.toISOString()} => ${msg.content.toString()}`);
                             msg = await this.unpackMessage(msg.content.toString());
                             if (callback) callback(msg);
                         }
